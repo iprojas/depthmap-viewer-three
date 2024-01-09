@@ -1,14 +1,16 @@
-
+// Importing necessary modules
 import * as THREE from 'three';
 
-
+// Importing texture images
 import MyRGBMapTexture from './assets/1.png';
 import MyDepthMapTexture from './assets/1_depth.png';
 
+// Variables for mesh, material, and image aspect ratio
 let mesh;
 let material;
 let image_ar;
 
+// Settings for material properties
 const settings = {
   metalness: 0.0,
   roughness: 0.14,
@@ -17,10 +19,11 @@ const settings = {
   displacementBias: -0.5,
 };
 
-
+// Variables for head detection
 let headDetected = true;
 let lastKnownView = { x: 0, y: 0, z: 0 };
 
+// Function to update head detection based on Parallax view
 function updateHeadDetected() {
   setTimeout(() => {
     let currentView = { x: 0, y: 0, z: 0 };
@@ -39,9 +42,10 @@ function updateHeadDetected() {
       lastKnownView = { ...currentView };
       updateHeadDetected();
     }
-  }, 2000); // 2 second delay
+  }, 2000); // 2-second delay
 }
 
+// Initializing Parallax with callback function for view updates
 Parallax.init((view) => {
   camera.position.x = view.x * 0.5;
   camera.position.y = view.y * 0.3;
@@ -50,11 +54,8 @@ Parallax.init((view) => {
  
   headDetected = true;  // Reset headDetected to true when the view changes
 
-
   // Update last known view
   lastKnownView = { ...view };
-
-
 
   // Start checking for head detection after initialization
   updateHeadDetected();
@@ -65,15 +66,11 @@ Parallax.init((view) => {
   threshold: 0.85
 });
 
-
-// init
+// Initializing Three.js components
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
-
 const scene = new THREE.Scene();
-
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(ambientLight);
-
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setAnimationLoop(animation);
@@ -82,11 +79,11 @@ renderer.toneMappingExposure = 1;
 renderer.outputEncoding = THREE.sRGBEncoding;
 document.body.appendChild(renderer.domElement);
 
-// animation
+// Animation function
 function animation(time) {
   renderer.render(scene, camera);
-  // Refactor this part so the camera returns to neutral position when head is not detected for 1 second
-  
+
+  // Reset camera position and material properties when head is not detected for 1 second
   if (!headDetected) {
     console.log('Head not detected');
     camera.position.x = 0;
@@ -96,6 +93,7 @@ function animation(time) {
   }
 }
 
+// Adjusting camera and renderer on window resize
 function onWindowResize() {
   const aspect = window.innerWidth / window.innerHeight;
   camera.aspect = aspect;
@@ -104,7 +102,7 @@ function onWindowResize() {
 }
 window.addEventListener('resize', onWindowResize);
 
-// Load RGB and depth map images
+// Function to load RGB and depth map images
 function loadImage(src, callback) {
   const img = new Image();
   img.onload = function () {
@@ -113,27 +111,33 @@ function loadImage(src, callback) {
   img.src = src;
 }
 
+// Loading and handling RGB and depth map images
 loadImage(MyRGBMapTexture, function (rgbImage) {
   loadImage(MyDepthMapTexture, function (depthImage) {
     handleImages(rgbImage, depthImage);
   });
 });
 
+// Function to handle RGB and depth map images
 function handleImages(rgbImage, depthImage) {
+  // Dispose existing mesh and material
   if (mesh) {
     mesh.geometry.dispose();
     mesh.material.dispose();
     scene.remove(mesh);
   }
 
+  // Calculate image aspect ratio
   image_ar = rgbImage.width / rgbImage.height;
 
+  // Create canvas for RGB map
   const ctxRGB = document.createElement('canvas').getContext('2d');
   ctxRGB.canvas.width = rgbImage.width;
   ctxRGB.canvas.height = rgbImage.height;
   ctxRGB.drawImage(rgbImage, 0, 0);
   const myrgbmap = new THREE.CanvasTexture(ctxRGB.canvas);
 
+  // Create canvas for inverted depth map
   const ctxDepth = document.createElement('canvas').getContext('2d');
   ctxDepth.canvas.width = depthImage.width;
   ctxDepth.canvas.height = depthImage.height;
@@ -151,9 +155,10 @@ function handleImages(rgbImage, depthImage) {
 
   ctxDepth.putImageData(depthImageData, 0, 0);
 
+  // Create texture for inverted depth map
   const mydepthmap = new THREE.CanvasTexture(ctxDepth.canvas);
 
-  // material
+  // Create material with specified properties
   material = new THREE.MeshStandardMaterial({
     color: 0xaaaaaa,
     roughness: 0,
@@ -164,7 +169,7 @@ function handleImages(rgbImage, depthImage) {
     displacementBias: -0.5,
   });
  
-  // generating geometry and add mesh to scene
+  // Generate geometry and add mesh to scene
   const geometry = new THREE.PlaneGeometry(10, 10, 512, 1024);
   mesh = new THREE.Mesh(geometry, material);
   mesh.scale.y = 1.0 / image_ar;
