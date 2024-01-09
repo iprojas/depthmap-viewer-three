@@ -1,7 +1,5 @@
 
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
 
 
 import MyRGBMapTexture from './assets/1.png';
@@ -45,12 +43,13 @@ function updateHeadDetected() {
 }
 
 Parallax.init((view) => {
-  camera.position.x = view.x * 0.3;
+  camera.position.x = view.x * 0.5;
   camera.position.y = view.y * 0.3;
   camera.position.z = view.z * 1.5 + 3;
   material.displacementScale = 5;
-  // Reset headDetected to true when the view changes
-  headDetected = true;
+ 
+  headDetected = true;  // Reset headDetected to true when the view changes
+
 
   // Update last known view
   lastKnownView = { ...view };
@@ -104,11 +103,6 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 window.addEventListener('resize', onWindowResize);
-
-// orbit controls
-// const controls = new OrbitControls(camera, renderer.domElement);
-// controls.enableZoom = true;
-// controls.enableDamping = true;
 
 // Load RGB and depth map images
 function loadImage(src, callback) {
@@ -177,21 +171,3 @@ function handleImages(rgbImage, depthImage) {
   mesh.scale.multiplyScalar(0.23);
   scene.add(mesh);
 }
-
-// setup gui
-const gui = new GUI();
-// gui.add(settings, 'metalness').min(0).max(1).onChange(function (value) {
-//   material.metalness = value;
-// });
-// gui.add(settings, 'roughness').min(0).max(1).onChange(function (value) {
-//   material.roughness = value;
-// });
-gui.add(settings, 'ambientIntensity').min(0).max(1).onChange(function (value) {
-  ambientLight.intensity = value;
-});
-gui.add(settings, 'displacementScale').min(0).max(30.0).onChange(function (value) {
-  material.displacementScale = value;
-});
-gui.add(settings, 'displacementBias').min(-10).max(10).onChange(function (value) {
-  material.displacementBias = value;
-});
