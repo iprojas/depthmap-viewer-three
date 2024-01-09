@@ -1,3 +1,4 @@
+
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
@@ -13,7 +14,7 @@ let image_ar;
 const settings = {
   metalness: 0.0,
   roughness: 0.14,
-  ambientIntensity: 0.85,
+  ambientIntensity: 0.90,
   displacementScale: 5,
   displacementBias: -0.5,
 };
@@ -87,9 +88,10 @@ document.body.appendChild(renderer.domElement);
 // animation
 function animation(time) {
   renderer.render(scene, camera);
+  // Refactor this part so the camera returns to neutral position when head is not detected for 1 second
+  
   if (!headDetected) {
     console.log('Head not detected');
-    // Return camera to neutral position when head is not detected
     camera.position.x = 0;
     camera.position.y = 0;
     camera.position.z = 5;
