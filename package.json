@@ -14,6 +14,7 @@
     "parcel": "^2.7.0"
   },
   "dependencies": {
+    "parallax-effect": "^2.1.1",
     "three": "^0.146.0"
   }
 }
