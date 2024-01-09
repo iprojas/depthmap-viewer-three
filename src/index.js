@@ -1,6 +1,4 @@
-
 import * as THREE from 'three';
-
 
 import MyRGBMapTexture from './assets/1.png';
 import MyDepthMapTexture from './assets/1_depth.png';
@@ -17,7 +15,6 @@ const settings = {
   displacementBias: -0.5,
 };
 
-
 let headDetected = true;
 let lastKnownView = { x: 0, y: 0, z: 0 };
 
@@ -26,7 +23,7 @@ function updateHeadDetected() {
     let currentView = { x: 0, y: 0, z: 0 };
 
     if (Parallax.view) {
-      currentView = { x: Parallax.view.x, y: Parallax.view.y, z: Parallax.view.z };
+      currentView = { ...Parallax.view };
     }
 
     if (
@@ -43,18 +40,15 @@ function updateHeadDetected() {
 }
 
 Parallax.init((view) => {
-  camera.position.x = view.x * 0.5;
-  camera.position.y = view.y * 0.3;
-  camera.position.z = view.z * 1.5 + 3;
-  material.displacementScale = 5;
- 
-  headDetected = true;  // Reset headDetected to true when the view changes
+  const { x, y, z } = view;
 
+  camera.position.set(x * 0.5, y * 0.3, z * 1.5 + 3);
+  material.displacementScale = settings.displacementScale;
+
+  headDetected = true; // Reset headDetected to true when the view changes
 
   // Update last known view
   lastKnownView = { ...view };
-
-
 
   // Start checking for head detection after initialization
   updateHeadDetected();
@@ -65,12 +59,9 @@ Parallax.init((view) => {
   threshold: 0.85
 });
 
-
 // init
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
-
 const scene = new THREE.Scene();
-
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(ambientLight);
 
@@ -85,13 +76,11 @@ document.body.appendChild(renderer.domElement);
 // animation
 function animation(time) {
   renderer.render(scene, camera);
-  // Refactor this part so the camera returns to neutral position when head is not detected for 1 second
-  
+
+  // Refactor this part so the camera returns to a neutral position when head is not detected for 1 second
   if (!headDetected) {
     console.log('Head not detected');
-    camera.position.x = 0;
-    camera.position.y = 0;
-    camera.position.z = 5;
+    camera.position.set(0, 0, 5);
     material.displacementScale = 0;
   }
 }
@@ -104,25 +93,12 @@ function onWindowResize() {
 }
 window.addEventListener('resize', onWindowResize);
 
-// orbit controls
-// const controls = new OrbitControls(camera, renderer.domElement);
-// controls.enableZoom = true;
-// controls.enableDamping = true;
-
 // Load RGB and depth map images
 function loadImage(src, callback) {
   const img = new Image();
-  img.onload = function () {
-    callback(img);
-  };
+  img.onload = () => callback(img);
   img.src = src;
 }
-
-loadImage(MyRGBMapTexture, function (rgbImage) {
-  loadImage(MyDepthMapTexture, function (depthImage) {
-    handleImages(rgbImage, depthImage);
-  });
-});
 
 function handleImages(rgbImage, depthImage) {
   if (mesh) {
@@ -133,11 +109,7 @@ function handleImages(rgbImage, depthImage) {
 
   image_ar = rgbImage.width / rgbImage.height;
 
-  const ctxRGB = document.createElement('canvas').getContext('2d');
-  ctxRGB.canvas.width = rgbImage.width;
-  ctxRGB.canvas.height = rgbImage.height;
-  ctxRGB.drawImage(rgbImage, 0, 0);
-  const myrgbmap = new THREE.CanvasTexture(ctxRGB.canvas);
+  const myrgbmap = new THREE.CanvasTexture(rgbImage);
 
   const ctxDepth = document.createElement('canvas').getContext('2d');
   ctxDepth.canvas.width = depthImage.width;
@@ -168,7 +140,7 @@ function handleImages(rgbImage, depthImage) {
     displacementScale: settings.displacementScale,
     displacementBias: -0.5,
   });
- 
+
   // generating geometry and add mesh to scene
   const geometry = new THREE.PlaneGeometry(10, 10, 512, 1024);
   mesh = new THREE.Mesh(geometry, material);
@@ -176,3 +148,9 @@ function handleImages(rgbImage, depthImage) {
   mesh.scale.multiplyScalar(0.23);
   scene.add(mesh);
 }
+
+loadImage(MyRGBMapTexture, (rgbImage) => {
+  loadImage(MyDepthMapTexture, (depthImage) => {
+    handleImages(rgbImage, depthImage);
+  });
+});
