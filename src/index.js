@@ -19,7 +19,6 @@ const settings = {
   displacementBias: -0.5,
 };
 
-// ...
 
 let headDetected = true;
 let lastKnownView = { x: 0, y: 0, z: 0 };
@@ -42,14 +41,14 @@ function updateHeadDetected() {
       lastKnownView = { ...currentView };
       updateHeadDetected();
     }
-  }, 2000); // 1 second delay
+  }, 2000); // 2 second delay
 }
 
 Parallax.init((view) => {
   camera.position.x = view.x * 0.3;
   camera.position.y = view.y * 0.3;
   camera.position.z = view.z * 1.5 + 3;
-
+  material.displacementScale = 5;
   // Reset headDetected to true when the view changes
   headDetected = true;
 
@@ -70,7 +69,6 @@ Parallax.init((view) => {
 
 // init
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
-// camera.position.z = 3;
 
 const scene = new THREE.Scene();
 
@@ -95,7 +93,7 @@ function animation(time) {
     camera.position.x = 0;
     camera.position.y = 0;
     camera.position.z = 5;
-    material.displacementScale = 5;
+    material.displacementScale = 0;
   }
 }
 
